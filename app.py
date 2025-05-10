@@ -8,7 +8,7 @@ app = Flask(__name__)
 CORS(app)
 
 app.config['JWT_SECRET_KEY'] = 'segredoJWT' 
-app.config['JWT_ACCESS_TOKEN_EXPIRES'] = timedelta(minutes=1)  # Define a expiração para 1 minuto
+app.config['JWT_ACCESS_TOKEN_EXPIRES'] = timedelta(minutes=30) 
 jwt = JWTManager(app)
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
