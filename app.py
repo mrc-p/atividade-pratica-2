@@ -12,7 +12,27 @@ app.config['JWT_SECRET_KEY'] = 'segredoJWT'
 app.config['JWT_ACCESS_TOKEN_EXPIRES'] = timedelta(minutes=30)
 
 jwt = JWTManager(app)
-swagger = Swagger(app)
+
+# Template do Swagger com JWT Bearer
+swagger_template = {
+    "swagger": "2.0",
+    "info": {
+        "title": "API de Músicas",
+        "description": "API com autenticação JWT e documentação Swagger",
+        "version": "1.0"
+    },
+    "securityDefinitions": {
+        "Bearer": {
+            "type": "apiKey",
+            "name": "Authorization",
+            "in": "header",
+            "description": "JWT Authorization header usando o esquema Bearer. Exemplo: **Bearer <seu_token>**"
+        }
+    },
+    "security": [{"Bearer": []}]
+}
+
+swagger = Swagger(app, template=swagger_template)
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
@@ -90,7 +110,6 @@ def login():
     return jsonify({'token': token}), 200
 
 @app.route('/musicas', methods=['GET'])
-@jwt_required()
 @swag_from({
     'tags': ['Músicas'],
     'security': [{'Bearer': []}],
@@ -99,6 +118,7 @@ def login():
         401: {'description': 'Token JWT inválido ou ausente'}
     }
 })
+@jwt_required()
 def listar_musicas():
     current_user = get_jwt_identity()
     logging.info(f"Usuário autenticado: {current_user}")
