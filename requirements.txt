@@ -1,0 +1,4 @@
+Flask
+Flask-JWT-Extended
+Flask-CORS
+Flask-Swagger-UI
