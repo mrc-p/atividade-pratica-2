@@ -2,14 +2,17 @@ from flask import Flask, request, jsonify, render_template
 from flask_jwt_extended import JWTManager, create_access_token, jwt_required, get_jwt_identity
 from flask_cors import CORS
 from datetime import timedelta
+from flasgger import Swagger, swag_from
 import logging
 
 app = Flask(__name__)
 CORS(app)
 
-app.config['JWT_SECRET_KEY'] = 'segredoJWT' 
-app.config['JWT_ACCESS_TOKEN_EXPIRES'] = timedelta(minutes=30) 
+app.config['JWT_SECRET_KEY'] = 'segredoJWT'
+app.config['JWT_ACCESS_TOKEN_EXPIRES'] = timedelta(minutes=30)
+
 jwt = JWTManager(app)
+swagger = Swagger(app)
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
@@ -20,6 +23,28 @@ def home():
     return render_template('index.html')
 
 @app.route('/register', methods=['POST'])
+@swag_from({
+    'tags': ['Autenticação'],
+    'parameters': [
+        {
+            'name': 'body',
+            'in': 'body',
+            'required': True,
+            'schema': {
+                'type': 'object',
+                'properties': {
+                    'email': {'type': 'string'},
+                    'password': {'type': 'string'}
+                },
+                'required': ['email', 'password']
+            }
+        }
+    ],
+    'responses': {
+        201: {'description': 'Usuário registrado com sucesso'},
+        400: {'description': 'Email e senha são obrigatórios'}
+    }
+})
 def register():
     data = request.json
     if not data or 'email' not in data or 'password' not in data:
@@ -29,6 +54,29 @@ def register():
     return jsonify({'message': 'Usuário registrado com sucesso!'}), 201
 
 @app.route('/login', methods=['POST'])
+@swag_from({
+    'tags': ['Autenticação'],
+    'parameters': [
+        {
+            'name': 'body',
+            'in': 'body',
+            'required': True,
+            'schema': {
+                'type': 'object',
+                'properties': {
+                    'email': {'type': 'string'},
+                    'password': {'type': 'string'}
+                },
+                'required': ['email', 'password']
+            }
+        }
+    ],
+    'responses': {
+        200: {'description': 'Login realizado com sucesso e token retornado'},
+        401: {'description': 'Credenciais inválidas'},
+        400: {'description': 'Dados de entrada inválidos'}
+    }
+})
 def login():
     data = request.json
     if not data or 'email' not in data or 'password' not in data:
@@ -43,6 +91,14 @@ def login():
 
 @app.route('/musicas', methods=['GET'])
 @jwt_required()
+@swag_from({
+    'tags': ['Músicas'],
+    'security': [{'Bearer': []}],
+    'responses': {
+        200: {'description': 'Lista de músicas retornada com sucesso'},
+        401: {'description': 'Token JWT inválido ou ausente'}
+    }
+})
 def listar_musicas():
     current_user = get_jwt_identity()
     logging.info(f"Usuário autenticado: {current_user}")
