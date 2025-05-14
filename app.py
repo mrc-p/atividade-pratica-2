@@ -13,7 +13,7 @@ app.config['JWT_ACCESS_TOKEN_EXPIRES'] = timedelta(minutes=30)
 
 jwt = JWTManager(app)
 
-# Template do Swagger com JWT Bearer
+
 swagger_template = {
     "swagger": "2.0",
     "info": {
